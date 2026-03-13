@@ -56,7 +56,11 @@ pub fn handle_event(
             agent.tool_name.clear();
         }
         "PreToolUse" => {
-            agent.state = AgentState::Working;
+            // Don't override Requesting — PreToolUse fires alongside
+            // PermissionRequest but the tool is still blocked on approval.
+            if agent.state != AgentState::Requesting {
+                agent.state = AgentState::Working;
+            }
             agent.tool_name = tool_name.to_string();
         }
         "PostToolUse" => {

@@ -23,6 +23,7 @@ const CMD_BRIGHTNESS: &[u8] = &[0x05, 0x00, 0x04, 0x80, 100];
 
 const BLE_DEBOUNCE_SECS: f64 = 2.0;
 const BLE_POLL_SECS: f64 = 0.25;
+const BLE_HEARTBEAT_SECS: f64 = 30.0;
 
 /// Build GIF packets for BLE transmission.
 /// Each packet has a 16-byte header + up to 4096 bytes of GIF data.
@@ -80,10 +81,24 @@ pub async fn ble_loop(state: Arc<RwLock<DisplayState>>) {
         let (peripheral, write_char) = connection;
         let mut last_hash: Option<String> = None;
         let mut change_detected_at: Option<tokio::time::Instant> = None;
+        let mut last_successful_write = tokio::time::Instant::now();
 
         info!("BLE render loop started");
 
         loop {
+            // Check connectivity
+            match peripheral.is_connected().await {
+                Ok(false) => {
+                    warn!("BLE device disconnected — reconnecting");
+                    break;
+                }
+                Err(e) => {
+                    warn!("BLE connectivity check failed: {} — reconnecting", e);
+                    break;
+                }
+                Ok(true) => {}
+            }
+
             // Check stale under write lock, then snapshot under read
             {
                 let mut s = state.write().await;
@@ -136,6 +151,7 @@ pub async fn ble_loop(state: Arc<RwLock<DisplayState>>) {
 
                     last_hash = Some(current_hash);
                     change_detected_at = None;
+                    last_successful_write = now;
                     info!(
                         "Sent animated GIF ({} bytes, {})",
                         gif_data.len(),
@@ -144,6 +160,19 @@ pub async fn ble_loop(state: Arc<RwLock<DisplayState>>) {
                 }
             } else {
                 change_detected_at = None;
+
+                // Heartbeat: send brightness command periodically to detect stale connections
+                if now.duration_since(last_successful_write).as_secs_f64() >= BLE_HEARTBEAT_SECS {
+                    match peripheral.write(&write_char, CMD_BRIGHTNESS, WriteType::WithResponse).await {
+                        Ok(_) => {
+                            last_successful_write = now;
+                        }
+                        Err(e) => {
+                            warn!("BLE heartbeat failed: {} — reconnecting", e);
+                            break;
+                        }
+                    }
+                }
             }
 
             tokio::time::sleep(Duration::from_secs_f64(BLE_POLL_SECS)).await;
