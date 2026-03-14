@@ -1,0 +1,20 @@
+{
+  "handlers": [
+    {
+      "name": "lfg-raid-frames",
+      "type": "webhook",
+      "match_rules": null,
+      "config": {
+        "url": "http://localhost:5555/webhook?host=cursor&profile=Space%20Invaders/0",
+        "type": "slack",
+        "text": "{{hook_event_name}}|{{session_id}}|{{tool_name}}"
+      }
+    },
+    {
+      "name": "stop-sound",
+      "type": "sound",
+      "match_rules": { "hook_event_name": "Stop" },
+      "config": { "file": "/System/Library/Sounds/Tink.aiff", "volume": 0.8 }
+    }
+  ]
+}

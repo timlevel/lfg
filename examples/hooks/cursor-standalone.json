@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "postToolUse": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "beforeShellExecution": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "afterShellExecution": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "afterFileEdit": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "stop": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "sessionStart": [{ "command": "examples/hooks/lfg-hook.sh" }],
+    "sessionEnd": [{ "command": "examples/hooks/lfg-hook.sh" }]
+  }
+}

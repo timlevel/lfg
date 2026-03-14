@@ -2,7 +2,6 @@
 
 WoW-inspired raid frames on a 64x64 LED panel for monitoring your coding agents.
 
-<!-- TODO: replace with actual GIF of the display -->
 ![LFG in action](docs/hero.gif)
 
 ## What is this?
@@ -66,15 +65,65 @@ cargo build --release
 
 ### Configure hooks
 
-LFG receives events via HTTP webhooks. Use [boopifier](https://github.com/terraboops/boopifier) to wire up Claude Code and/or Cursor hooks:
+LFG receives events via HTTP webhooks. There are two ways to connect your IDE:
+
+#### Option A: Standalone (no dependencies beyond curl + jq)
+
+Copy the hook script and make it executable:
 
 ```bash
-# Claude Code hooks (~/.claude/hooks.json)
-# Cursor hooks (~/.cursor/hooks.json)
-# See boopifier README for setup
+cp examples/hooks/lfg-hook.sh ~/.local/bin/lfg-hook.sh
+chmod +x ~/.local/bin/lfg-hook.sh
 ```
 
-Or send events directly:
+**Claude Code** — add to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [{ "type": "command", "command": "lfg-hook.sh" }],
+    "PostToolUse": [{ "type": "command", "command": "lfg-hook.sh" }],
+    "Stop": [{ "type": "command", "command": "lfg-hook.sh" }],
+    "SubagentStop": [{ "type": "command", "command": "lfg-hook.sh" }]
+  }
+}
+```
+
+**Cursor** — add to `~/.cursor/hooks.json`:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{ "command": "lfg-hook.sh" }],
+    "postToolUse": [{ "command": "lfg-hook.sh" }],
+    "beforeShellExecution": [{ "command": "lfg-hook.sh" }],
+    "afterShellExecution": [{ "command": "lfg-hook.sh" }],
+    "afterFileEdit": [{ "command": "lfg-hook.sh" }],
+    "stop": [{ "command": "lfg-hook.sh" }],
+    "sessionStart": [{ "command": "lfg-hook.sh" }],
+    "sessionEnd": [{ "command": "lfg-hook.sh" }]
+  }
+}
+```
+
+Environment variables: `LFG_URL` (default `http://localhost:5555/webhook`), `LFG_HOST` (default `claude`). Set `LFG_HOST=cursor` for Cursor hooks.
+
+#### Option B: With boopifier (adds sound alerts, multi-handler routing)
+
+Install [boopifier](https://github.com/terraboops/boopifier), then copy the example configs:
+
+```bash
+mkdir -p ~/.config/lfg
+cp examples/hooks/boopifier-claude.json ~/.config/lfg/
+cp examples/hooks/boopifier-cursor.json ~/.config/lfg/
+```
+
+Then point your IDE hooks at boopifier — see `examples/hooks/claude-code-boopifier.json` and `examples/hooks/cursor-boopifier.json` for the hook configs.
+
+Boopifier adds features like sound alerts on Stop events, per-host sprite themes, and multi-destination routing.
+
+#### Manual / testing
 
 ```bash
 curl -X POST http://localhost:5555/webhook \
@@ -82,6 +131,8 @@ curl -X POST http://localhost:5555/webhook \
   -d '{"text": "PreToolUse|session-id-here|Bash"}' \
   -G -d 'host=claude'
 ```
+
+See `examples/hooks/` for all example configs.
 
 ### API
 

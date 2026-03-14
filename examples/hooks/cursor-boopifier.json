@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "postToolUse": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "beforeShellExecution": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "afterShellExecution": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "afterFileEdit": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "stop": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "sessionStart": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }],
+    "sessionEnd": [{ "command": "boopifier -c ~/.config/lfg/boopifier-cursor.json" }]
+  }
+}

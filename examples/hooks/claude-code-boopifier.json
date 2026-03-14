@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "PreToolUse": [{ "type": "command", "command": "boopifier -c ~/.config/lfg/boopifier-claude.json" }],
+    "PostToolUse": [{ "type": "command", "command": "boopifier -c ~/.config/lfg/boopifier-claude.json" }],
+    "Stop": [{ "type": "command", "command": "boopifier -c ~/.config/lfg/boopifier-claude.json" }],
+    "SubagentStop": [{ "type": "command", "command": "boopifier -c ~/.config/lfg/boopifier-claude.json" }]
+  }
+}

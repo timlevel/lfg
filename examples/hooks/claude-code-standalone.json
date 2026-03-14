@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "PreToolUse": [{ "type": "command", "command": "examples/hooks/lfg-hook.sh" }],
+    "PostToolUse": [{ "type": "command", "command": "examples/hooks/lfg-hook.sh" }],
+    "Stop": [{ "type": "command", "command": "examples/hooks/lfg-hook.sh" }],
+    "SubagentStop": [{ "type": "command", "command": "examples/hooks/lfg-hook.sh" }]
+  }
+}
