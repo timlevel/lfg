@@ -2,7 +2,9 @@
 
 WoW-inspired raid frames on a 64x64 LED panel for monitoring your coding agents.
 
-![LFG in action](docs/hero.gif)
+<p align="center">
+  <img src="docs/hero.gif" alt="LFG in action" width="500">
+</p>
 
 ## What is this?
 
