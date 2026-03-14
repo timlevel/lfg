@@ -1,21 +1,21 @@
-# LFG
+# lfg
 
 WoW-inspired raid frames on a 64x64 LED panel for monitoring your coding agents.
 
 <p align="center">
-  <img src="docs/hero.gif" alt="LFG in action" width="500">
+  <img src="docs/hero.gif" alt="lfg in action" width="500">
 </p>
 
 ## What is this?
 
-LFG turns a [$25 iDotMatrix LED panel](https://idotmatrix.com) into a real-time raid frame display for your AI coding agents. Each agent gets a sprite, a player ID, and a status icon — just like watching your party in a 10-man raid.
+lfg turns a [$25 iDotMatrix LED panel](https://www.aliexpress.com/w/wholesale-idotmatrix-64x64.html) into a real-time raid frame display for your AI coding agents. Each agent gets a sprite, a player ID, and a status icon — just like watching your party in a 10-man raid.
 
 **States:**
 - **Working** — agent is actively using tools (sword/potion/compass icon)
 - **Idle** — agent has stopped (zzz with marching border)
 - **Requesting** — agent needs approval, i.e. *standing in fire* (fire icon with marching border)
 
-The most important thing LFG does is make idle and approval states impossible to miss. When an agent needs you, you see the fire icon in your peripheral vision without switching windows.
+The most important thing lfg does is make idle and approval states impossible to miss. When an agent needs you, you see the fire icon in your peripheral vision without switching windows.
 
 ## How it works
 
@@ -26,12 +26,12 @@ Claude Code / Cursor hooks
         ↓
    HTTP webhook POST
         ↓
-   LFG (Rust server)
+   lfg (Rust server)
         ↓
    BLE → iDotMatrix 64x64 LED
 ```
 
-LFG receives webhook events (`PreToolUse`, `PostToolUse`, `PermissionRequest`, `Stop`, etc.), manages an agent state machine, renders 8x8 pixel-art sprites into animated GIF frames, and sends them over BLE to the display.
+lfg receives webhook events (`PreToolUse`, `PostToolUse`, `PermissionRequest`, `Stop`, etc.), manages an agent state machine, renders 8x8 pixel-art sprites into animated GIF frames, and sends them over BLE to the display.
 
 ## Features
 
@@ -67,7 +67,7 @@ cargo build --release
 
 ### Configure hooks
 
-LFG receives events via HTTP webhooks. There are two ways to connect your IDE:
+lfg receives events via HTTP webhooks. There are two ways to connect your IDE:
 
 #### Option A: Standalone (no dependencies beyond curl + jq)
 
