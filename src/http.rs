@@ -1,7 +1,7 @@
 use axum::{
     extract::{Path, Query, State},
     http::HeaderMap,
-    response::Json,
+    response::{IntoResponse, Json},
     routing::{get, post},
     Router,
 };
@@ -12,6 +12,29 @@ use tracing::info;
 use crate::event;
 use crate::sprites::THEMES;
 use crate::state::SharedState;
+
+const MAX_SESSION_ID_LEN: usize = 256;
+const MAX_TOOL_NAME_LEN: usize = 128;
+const MAX_EVENT_NAME_LEN: usize = 64;
+const MAX_CLIENT_KEY_LEN: usize = 128;
+const MAX_PIXELS_B64_LEN: usize = 32_768; // ~24KB base64 → ~18KB raw
+const MAX_PIXELS_RAW_LEN: usize = 16_384; // 16KB raw
+
+async fn auth_middleware(
+    State(token): State<String>,
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let provided = request
+        .headers()
+        .get("Authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.strip_prefix("Bearer "));
+    if provided != Some(token.as_str()) {
+        return (axum::http::StatusCode::UNAUTHORIZED, "Unauthorized").into_response();
+    }
+    next.run(request).await
+}
 
 fn resolve_param<'a>(
     query_val: Option<&'a str>,
@@ -28,8 +51,8 @@ fn resolve_param<'a>(
         })
 }
 
-pub fn router(state: SharedState) -> Router {
-    Router::new()
+pub fn router(state: SharedState, token: Option<String>) -> Router {
+    let router = Router::new()
         .route("/webhook", post(webhook))
         .route("/status", get(status))
         .route("/reset", post(reset))
@@ -40,7 +63,16 @@ pub fn router(state: SharedState) -> Router {
         .route("/sprites/export", post(sprites_export))
         .route("/sprites/reload", post(sprites_reload))
         .route("/debug/ble-disconnect-simulate", post(debug_ble_disconnect_simulate))
-        .with_state(state)
+        .with_state(state);
+
+    if let Some(t) = token {
+        router.route_layer(axum::middleware::from_fn_with_state(
+            t,
+            auth_middleware,
+        ))
+    } else {
+        router
+    }
 }
 
 #[derive(serde::Deserialize)]
@@ -72,9 +104,23 @@ async fn webhook(
     let profile = resolve_param(query.profile.as_deref(), &headers, "X-Agent-Profile");
     let pixels_b64 = resolve_param(query.pixels.as_deref(), &headers, "X-Agent-Pixels");
 
+    if event_name.len() > MAX_EVENT_NAME_LEN
+        || session_id.len() > MAX_SESSION_ID_LEN
+        || tool_name.len() > MAX_TOOL_NAME_LEN
+        || client_key.len() > MAX_CLIENT_KEY_LEN
+    {
+        return Json(json!({"ok": false, "error": "input too long"}));
+    }
+
     let pixels = pixels_b64.and_then(|b64| {
+        if b64.len() > MAX_PIXELS_B64_LEN {
+            return None;
+        }
         use base64::Engine;
         let raw = base64::engine::general_purpose::STANDARD.decode(b64).ok()?;
+        if raw.len() > MAX_PIXELS_RAW_LEN {
+            return None;
+        }
         if raw.starts_with(&[0x89, b'P', b'N', b'G']) {
             png_to_pixels(&raw)
         } else if raw.len() == 192 {

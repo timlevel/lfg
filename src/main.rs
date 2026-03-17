@@ -17,6 +17,14 @@ struct Args {
     #[arg(short, long, default_value = "5555")]
     port: u16,
 
+    /// Bind address (default: 127.0.0.1 — localhost only)
+    #[arg(long, default_value = "127.0.0.1")]
+    bind: String,
+
+    /// Optional auth token — if set, all requests must supply `Authorization: Bearer <TOKEN>`
+    #[arg(long)]
+    token: Option<String>,
+
     /// BLE device address (e.g. AA:BB:CC:DD:EE:FF). Auto-discovers if omitted.
     #[arg(short, long)]
     device: Option<String>,
@@ -61,7 +69,7 @@ async fn main() {
         "Device: {}",
         args.device.as_deref().unwrap_or("auto-discover IDM-*")
     );
-    info!("Webhook: http://0.0.0.0:{}/webhook", args.port);
+    info!("Webhook: http://{}:{}/webhook", args.bind, args.port);
     info!("");
     info!("Status:   curl -s localhost:{}/status", args.port);
     info!("Hosts:    curl -s localhost:{}/hosts", args.port);
@@ -78,8 +86,10 @@ async fn main() {
     }
 
     // HTTP server
-    let app = http::router(shared);
-    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], args.port));
+    let app = http::router(shared, args.token);
+    let addr: std::net::SocketAddr = format!("{}:{}", args.bind, args.port)
+        .parse()
+        .expect("Invalid bind address");
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     info!("Listening on {}", addr);
     axum::serve(listener, app).await.unwrap();

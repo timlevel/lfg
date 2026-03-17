@@ -6,6 +6,7 @@ use tokio::sync::RwLock;
 pub const MAX_COLUMNS: usize = 5;
 pub const AGENT_IDLE_TIMEOUT_SECS: f64 = 5.0 * 60.0;
 pub const STATS_DISPLAY_INTERVAL_SECS: f64 = 15.0;
+pub const MAX_UNIQUE_AGENTS: usize = 10_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AgentState {

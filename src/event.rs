@@ -17,7 +17,9 @@ pub fn handle_event(
         return;
     }
 
-    state.stats.unique_agents.insert(session_id.to_string());
+    if state.stats.unique_agents.len() < crate::state::MAX_UNIQUE_AGENTS {
+        state.stats.unique_agents.insert(session_id.to_string());
+    }
 
     if !state.session_map.contains_key(session_id) {
         let result = gateway::join_agent(state, session_id, client_key, profile, pixels);
