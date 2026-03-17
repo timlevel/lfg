@@ -46,6 +46,12 @@ async fn main() {
 
     let args = Args::parse();
 
+    // `--token` takes precedence; fall back to `LFG_TOKEN` env var so the
+    // token is never visible in the process table.
+    let token = args
+        .token
+        .or_else(|| std::env::var("LFG_TOKEN").ok().filter(|t| !t.is_empty()));
+
     let conn = db::open_db("lfg.db");
     let (db_tool_calls, db_unique_agents, db_agent_minutes) = db::load_stats(&conn);
     if db_tool_calls > 0 || db_unique_agents > 0 || db_agent_minutes > 0.0 {
@@ -64,6 +70,10 @@ async fn main() {
         s.db_conn = Some(std::sync::Mutex::new(conn));
     }
 
+    info!(
+        "Auth: {}",
+        if token.is_some() { "enabled" } else { "disabled (open)" }
+    );
     info!("iDotMatrix 64x64 raid frames (Rust) — 5 columns, 2 agents each");
     info!(
         "Device: {}",
@@ -86,7 +96,7 @@ async fn main() {
     }
 
     // HTTP server
-    let app = http::router(shared, args.token);
+    let app = http::router(shared, token);
     let addr: std::net::SocketAddr = format!("{}:{}", args.bind, args.port)
         .parse()
         .expect("Invalid bind address");

@@ -135,10 +135,10 @@ chmod +x ~/.local/bin/lfg-hook.sh
       { "matcher": "", "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
     ],
     "Stop": [
-      { "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+      { "matcher": "", "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
     ],
     "SubagentStop": [
-      { "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+      { "matcher": "", "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
     ]
   }
 }

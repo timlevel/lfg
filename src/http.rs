@@ -16,8 +16,8 @@ use crate::state::SharedState;
 const MAX_SESSION_ID_LEN: usize = 256;
 const MAX_TOOL_NAME_LEN: usize = 128;
 const MAX_EVENT_NAME_LEN: usize = 64;
-const MAX_CLIENT_KEY_LEN: usize = 128;
-const MAX_PIXELS_B64_LEN: usize = 32_768; // ~24KB base64 → ~18KB raw
+const MAX_HOST_LEN: usize = 128;
+const MAX_PIXELS_B64_LEN: usize = 32_768; // ~32KB base64 → ~24KB raw
 const MAX_PIXELS_RAW_LEN: usize = 16_384; // 16KB raw
 
 async fn auth_middleware(
@@ -107,7 +107,7 @@ async fn webhook(
     if event_name.len() > MAX_EVENT_NAME_LEN
         || session_id.len() > MAX_SESSION_ID_LEN
         || tool_name.len() > MAX_TOOL_NAME_LEN
-        || client_key.len() > MAX_CLIENT_KEY_LEN
+        || client_key.len() > MAX_HOST_LEN
     {
         return Json(json!({"ok": false, "error": "input too long"}));
     }

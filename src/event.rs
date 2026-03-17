@@ -1,5 +1,5 @@
 use std::time::Instant;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::gateway;
 use crate::state::{AgentState, DisplayState};
@@ -19,6 +19,12 @@ pub fn handle_event(
 
     if state.stats.unique_agents.len() < crate::state::MAX_UNIQUE_AGENTS {
         state.stats.unique_agents.insert(session_id.to_string());
+    } else {
+        warn!(
+            "unique_agents cap ({}) reached — session {:.8} not counted in lifetime stats",
+            crate::state::MAX_UNIQUE_AGENTS,
+            session_id
+        );
     }
 
     if !state.session_map.contains_key(session_id) {
