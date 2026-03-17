@@ -84,6 +84,32 @@ lfg
 lfg --no-ble
 ```
 
+### Secure setup (optional)
+
+By default lfg binds to `127.0.0.1` (localhost only), so it is not reachable from other machines. If you want an extra layer of protection — for example, if you share a machine or run lfg on a server — you can require an auth token on every request:
+
+```bash
+lfg --token mysecrettoken
+```
+
+All HTTP requests (webhooks and API calls) must then include the token as a Bearer header:
+
+```
+Authorization: Bearer mysecrettoken
+```
+
+Requests without a valid token receive a `401 Unauthorized` response.
+
+To wire this up with the hook script, set the `LFG_TOKEN` environment variable before your IDE starts:
+
+```bash
+export LFG_TOKEN=mysecrettoken
+```
+
+The hook script reads `LFG_TOKEN` and forwards it automatically. A safe place to set this is your shell's login profile (`~/.bash_profile`, `~/.zshrc`, `~/.config/fish/config.fish`) so it is always present when the IDE launches.
+
+> **Note:** The token is passed on the command line, so it will appear in `ps` output. For stronger isolation, localhost-only binding (the default) is usually sufficient for a personal machine.
+
 ### Configure hooks
 
 lfg receives events via HTTP webhooks. There are two ways to connect your IDE:
@@ -102,10 +128,18 @@ chmod +x ~/.local/bin/lfg-hook.sh
 ```json
 {
   "hooks": {
-    "PreToolUse": [{ "type": "command", "command": "lfg-hook.sh" }],
-    "PostToolUse": [{ "type": "command", "command": "lfg-hook.sh" }],
-    "Stop": [{ "type": "command", "command": "lfg-hook.sh" }],
-    "SubagentStop": [{ "type": "command", "command": "lfg-hook.sh" }]
+    "PreToolUse": [
+      { "matcher": "", "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "", "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+    ],
+    "SubagentStop": [
+      { "hooks": [{ "type": "command", "command": "lfg-hook.sh" }] }
+    ]
   }
 }
 ```
@@ -128,7 +162,7 @@ chmod +x ~/.local/bin/lfg-hook.sh
 }
 ```
 
-Environment variables: `LFG_URL` (default `http://localhost:5555/webhook`), `LFG_HOST` (default `claude`). Set `LFG_HOST=cursor` for Cursor hooks.
+Environment variables: `LFG_URL` (default `http://localhost:5555/webhook`), `LFG_HOST` (default `claude`), `LFG_TOKEN` (unset by default — set to match `--token` if auth is enabled). Set `LFG_HOST=cursor` for Cursor hooks.
 
 #### Option B: With boopifier (adds sound alerts, multi-handler routing)
 

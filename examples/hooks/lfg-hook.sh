@@ -15,6 +15,7 @@ set -euo pipefail
 
 LFG_URL="${LFG_URL:-http://localhost:5555/webhook}"
 LFG_HOST="${LFG_HOST:-claude}"
+LFG_TOKEN="${LFG_TOKEN:-}"
 
 # Read hook payload from stdin
 input=$(cat)
@@ -39,6 +40,7 @@ esac
 [ -z "$hook_event" ] && exit 0
 
 curl -sf -X POST "$LFG_URL?host=$LFG_HOST" \
+  ${LFG_TOKEN:+-H "Authorization: Bearer $LFG_TOKEN"} \
   -H 'Content-Type: application/json' \
   -d "{\"text\": \"${hook_event}|${session_id}|${tool_name}\"}" \
   >/dev/null 2>&1 &
